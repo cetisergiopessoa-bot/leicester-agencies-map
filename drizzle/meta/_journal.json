@@ -15,6 +15,13 @@
       "when": 1773418412457,
       "tag": "0001_last_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1773426739411,
+      "tag": "0002_bent_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

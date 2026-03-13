@@ -32,6 +32,7 @@ export const agencies = mysqlTable("agencies", {
   phone: text("phone"),
   email: text("email"),
   website: text("website"),
+  linkedIn: text("linkedIn"),
   latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
   longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
   description: text("description"),
@@ -39,6 +40,7 @@ export const agencies = mysqlTable("agencies", {
   documentsRequired: text("documentsRequired"),
   openingHours: json("openingHours"),
   region: text("region"),
+  recruiters: json("recruiters"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

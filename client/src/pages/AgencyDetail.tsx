@@ -1,8 +1,9 @@
 import { useParams, useLocation } from "wouter";
+import { ReactNode } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Phone, Mail, Globe, ArrowLeft, Loader2 } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, ArrowLeft, Loader2, Linkedin, Users } from "lucide-react";
 import { MapboxMap } from "@/components/MapboxMap";
 
 /**
@@ -67,11 +68,11 @@ export default function AgencyDetail() {
             {agency.description && (
               <Card className="p-6 mb-6">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">About</h2>
-                <p className="text-slate-600 text-lg">{agency.description}</p>
+                <p className="text-slate-600 text-lg">{agency.description as ReactNode}</p>
               </Card>
             )}
 
-            {/* Contact Information */}
+            <>
             <Card className="p-6 mb-6">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">Contact Information</h2>
 
@@ -134,8 +135,51 @@ export default function AgencyDetail() {
                     </div>
                   </div>
                 )}
+
+                {/* LinkedIn */}
+                {agency.linkedIn && (
+                  <div className="flex gap-4 items-start">
+                    <Linkedin className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-slate-900">LinkedIn</p>
+                      <a
+                        href={agency.linkedIn}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Visit Company Profile
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
+
+            {/* Recruiters Section */}
+            {agency.recruiters && Array.isArray(agency.recruiters) && (agency.recruiters as any[]).length > 0 && (
+              <Card className="p-6 mb-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <Users className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-2xl font-bold text-slate-900">Recruiters</h2>
+                </div>
+
+                <div className="space-y-4">
+                  {(agency.recruiters as any[]).map((recruiter: any, index: number) => (
+                    <div key={index} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <p className="font-semibold text-slate-900 text-lg">{recruiter.name}</p>
+                      <p className="text-sm text-slate-500 mb-2">{recruiter.specialization}</p>
+                      <a
+                        href={`mailto:${recruiter.email}`}
+                        className="text-blue-600 hover:underline text-sm"
+                      >
+                        {recruiter.email}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
 
             {/* Location on Map */}
             <Card className="p-6">
@@ -147,6 +191,7 @@ export default function AgencyDetail() {
                 agencyName={agency.name}
               />
             </Card>
+            </>
           </div>
 
           {/* Sidebar */}
