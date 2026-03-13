@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Globe, ArrowLeft, Loader2 } from "lucide-react";
+import { MapboxMap } from "@/components/MapboxMap";
 
 /**
  * Agency detail page showing full information about a specific agency
@@ -139,11 +140,12 @@ export default function AgencyDetail() {
             {/* Location on Map */}
             <Card className="p-6">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Location</h2>
-              <div className="bg-slate-200 rounded-lg h-96 flex items-center justify-center">
-                <p className="text-slate-600">
-                  Latitude: {agency.latitude}, Longitude: {agency.longitude}
-                </p>
-              </div>
+              <MapboxMap
+                latitude={parseFloat(agency.latitude.toString())}
+                longitude={parseFloat(agency.longitude.toString())}
+                zoom={16}
+                agencyName={agency.name}
+              />
             </Card>
           </div>
 

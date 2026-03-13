@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Search, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { MapboxMapWithMarkers } from "@/components/MapboxMapWithMarkers";
 
 /**
  * Home page with Mapbox satellite view and agency search
@@ -52,6 +53,19 @@ export default function Home() {
           </p>
         </div>
       </header>
+
+      {/* Map Section */}
+      {!isLoading && agencies.length > 0 && (
+        <div className="w-full bg-white border-b border-slate-200">
+          <div className="container py-6">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Agencies Map</h2>
+            <MapboxMapWithMarkers
+              agencies={agencies}
+              onAgencyClick={(agencyId) => navigate(`/agency/${agencyId}`)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="container py-8">
