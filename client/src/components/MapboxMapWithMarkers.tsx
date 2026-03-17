@@ -15,10 +15,16 @@ export function MapboxMapWithMarkers({ agencies, onAgencyClick }: MapboxMapWithM
   useEffect(() => {
     if (!mapContainer.current || agencies.length === 0) return;
 
-    // Set Mapbox token
-    const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+    // Set Mapbox token - try multiple sources
+    let token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+    
+    // Fallback: try to get from window object if available
+    if (!token && typeof window !== 'undefined' && (window as any).VITE_MAPBOX_ACCESS_TOKEN) {
+      token = (window as any).VITE_MAPBOX_ACCESS_TOKEN;
+    }
+    
     if (!token) {
-      console.error("Mapbox token not found");
+      console.error("Mapbox token not found in environment variables");
       return;
     }
 
