@@ -1,10 +1,11 @@
+import { ReactNode, useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { ReactNode } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Globe, ArrowLeft, Loader2, Linkedin, Users } from "lucide-react";
 import { MapboxMap } from "@/components/MapboxMap";
+import { ContactModal } from "@/components/ContactModal";
 
 /**
  * Agency detail page showing full information about a specific agency
@@ -13,6 +14,7 @@ export default function AgencyDetail() {
   const params = useParams();
   const [, navigate] = useLocation();
   const agencyId = params?.id as string;
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Fetch agency details
   const { data: agency, isLoading } = trpc.agencies.getById.useQuery(
@@ -37,6 +39,19 @@ export default function AgencyDetail() {
         </Button>
       </div>
     );
+  }
+
+  // Get first recruiter email for contact form
+  let firstRecruiter = null;
+  if (agency.recruiters) {
+    try {
+      const recruiters = typeof agency.recruiters === 'string'
+        ? JSON.parse(agency.recruiters)
+        : agency.recruiters;
+      firstRecruiter = Array.isArray(recruiters) ? recruiters[0] : recruiters;
+    } catch (e) {
+      console.error('Failed to parse recruiters:', e);
+    }
   }
 
   return (
@@ -198,6 +213,14 @@ export default function AgencyDetail() {
           <div className="lg:col-span-1">
             {/* Quick Info Card */}
             <Card className="p-6 sticky top-4">
+              <ContactModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
+                agencyName={agency.name}
+                agencyEmail={agency.email || ""}
+                recruiterEmail={firstRecruiter?.email || undefined}
+                recruiterName={firstRecruiter?.name || undefined}
+              />
               <h3 className="text-xl font-bold text-slate-900 mb-4">Quick Info</h3>
 
               <div className="space-y-4">
@@ -216,7 +239,11 @@ export default function AgencyDetail() {
                 </div>
 
                 <div className="pt-4 border-t border-slate-200">
-                  <Button className="w-full" size="lg">
+                  <Button
+                    onClick={() => setIsContactModalOpen(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    size="lg"
+                  >
                     Contact Agency
                   </Button>
                 </div>
