@@ -52,6 +52,22 @@ const trpcClient = trpc.createClient({
   ],
 });
 
+// Load analytics script if configured
+const analyticsEndpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
+const analyticsWebsiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
+
+if (analyticsEndpoint && analyticsWebsiteId && !analyticsEndpoint.includes("example.com")) {
+  const script = document.createElement("script");
+  script.defer = true;
+  script.src = `${analyticsEndpoint.replace(/\/+$/, "")}/umami`;
+  script.setAttribute("data-website-id", analyticsWebsiteId);
+  document.head.appendChild(script);
+} else if (typeof window !== "undefined") {
+  console.warn(
+    "Analytics not initialized: set VITE_ANALYTICS_ENDPOINT and VITE_ANALYTICS_WEBSITE_ID to a valid Umami endpoint."
+  );
+}
+
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>

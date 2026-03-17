@@ -14,6 +14,10 @@
 - [x] Contact Agency button functionality - add contact form modal with email integration
 
 ## Pending Features
-- [ ] Opening hours display
-- [ ] Agency ratings/reviews system
-- [ ] Email notifications for inquiries
+- [x] Opening hours display
+- [x] Agency ratings/reviews system
+- [x] Email notifications for inquiries
+  
+  
+## Author  
+Mauro Frank Lima - +44 0 7386 797715 - mauro.lima@educacao.am.gov.br 
