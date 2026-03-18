@@ -6,6 +6,38 @@ import { z } from "zod";
 import { getDb } from "./db";
 import { agencies } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { agencySeedData } from "@shared/agencySeedData";
+
+async function listAgencies() {
+  const db = await getDb();
+  if (!db) return agencySeedData;
+
+  try {
+    const rows = await db.select().from(agencies);
+    return rows.length > 0 ? rows : agencySeedData;
+  } catch (error) {
+    console.warn("[Agencies] Falling back to seed data:", error);
+    return agencySeedData;
+  }
+}
+
+async function getAgencyById(id: string) {
+  const db = await getDb();
+  if (!db) return agencySeedData.find((agency) => agency.id === id) ?? null;
+
+  try {
+    const result = await db
+      .select()
+      .from(agencies)
+      .where(eq(agencies.id, id))
+      .limit(1);
+    if (result.length > 0) return result[0];
+  } catch (error) {
+    console.warn("[Agencies] Falling back to seed data for detail:", error);
+  }
+
+  return agencySeedData.find((agency) => agency.id === id) ?? null;
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -21,23 +53,10 @@ export const appRouter = router({
   }),
 
   agencies: router({
-    list: publicProcedure.query(async () => {
-      const db = await getDb();
-      if (!db) return [];
-      return await db.select().from(agencies);
-    }),
+    list: publicProcedure.query(listAgencies),
     getById: publicProcedure
       .input(z.object({ id: z.string() }))
-      .query(async ({ input }) => {
-        const db = await getDb();
-        if (!db) return null;
-        const result = await db
-          .select()
-          .from(agencies)
-          .where(eq(agencies.id, input.id))
-          .limit(1);
-        return result.length > 0 ? result[0] : null;
-      }),
+      .query(async ({ input }) => getAgencyById(input.id)),
   }),
 });
 
