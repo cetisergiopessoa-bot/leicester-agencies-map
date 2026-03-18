@@ -30,19 +30,10 @@ const GET_USER_INFO_WITH_JWT_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserI
 
 class OAuthService {
   constructor(private client: ReturnType<typeof axios.create>) {
-    if (ENV.oAuthServerUrl) {
-      console.log("[OAuth] Initialized with baseURL:", ENV.oAuthServerUrl);
-    } else {
-      console.warn(
-        "[OAuth] OAuth is disabled because OAUTH_SERVER_URL is not configured."
-      );
-    }
-  }
-
-  private ensureConfigured() {
+    console.log("[OAuth] Initialized with baseURL:", ENV.oAuthServerUrl);
     if (!ENV.oAuthServerUrl) {
-      throw new Error(
-        "OAUTH_SERVER_URL is not configured. Set OAUTH_SERVER_URL to enable OAuth."
+      console.error(
+        "[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable."
       );
     }
   }
@@ -56,8 +47,6 @@ class OAuthService {
     code: string,
     state: string
   ): Promise<ExchangeTokenResponse> {
-    this.ensureConfigured();
-
     const payload: ExchangeTokenRequest = {
       clientId: ENV.appId,
       grantType: "authorization_code",
@@ -76,8 +65,6 @@ class OAuthService {
   async getUserInfoByToken(
     token: ExchangeTokenResponse
   ): Promise<GetUserInfoResponse> {
-    this.ensureConfigured();
-
     const { data } = await this.client.post<GetUserInfoResponse>(
       GET_USER_INFO_PATH,
       {
@@ -102,14 +89,6 @@ class SDKServer {
   constructor(client: AxiosInstance = createOAuthHttpClient()) {
     this.client = client;
     this.oauthService = new OAuthService(this.client);
-  }
-
-  private ensureOAuthConfigured() {
-    if (!ENV.oAuthServerUrl) {
-      throw new Error(
-        "OAUTH_SERVER_URL is not configured. Set OAUTH_SERVER_URL to enable OAuth."
-      );
-    }
   }
 
   private deriveLoginMethod(
@@ -222,6 +201,7 @@ class SDKServer {
     cookieValue: string | undefined | null
   ): Promise<{ openId: string; appId: string; name: string } | null> {
     if (!cookieValue) {
+      console.warn("[Auth] Missing session cookie");
       return null;
     }
 
@@ -255,8 +235,6 @@ class SDKServer {
   async getUserInfoWithJwt(
     jwtToken: string
   ): Promise<GetUserInfoWithJwtResponse> {
-    this.ensureOAuthConfigured();
-
     const payload: GetUserInfoWithJwtRequest = {
       jwtToken,
       projectId: ENV.appId,

@@ -1,67 +1,53 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Layers2 } from "lucide-react";
-import { Button } from "./ui/button";
 import type { Agency } from "@/lib/types";
-import {
-  getMapboxStyle,
-  handleMapboxError,
-  initializeMapbox,
-  type MapboxStyleMode,
-} from "@/lib/mapbox";
 
 interface MapboxMapWithMarkersProps {
   agencies: Agency[];
   onAgencyClick?: (agencyId: string) => void;
 }
 
-export function MapboxMapWithMarkers({
-  agencies,
-  onAgencyClick,
-}: MapboxMapWithMarkersProps) {
+export function MapboxMapWithMarkers({ agencies, onAgencyClick }: MapboxMapWithMarkersProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const [styleMode, setStyleMode] = useState<MapboxStyleMode>("default");
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
-    if (!initializeMapbox()) return;
+    if (!mapContainer.current || agencies.length === 0) return;
 
+    // Set Mapbox token - try multiple sources
+    let token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+    
+    // Fallback: try to get from window object if available
+    if (!token && typeof window !== 'undefined' && (window as any).VITE_MAPBOX_ACCESS_TOKEN) {
+      token = (window as any).VITE_MAPBOX_ACCESS_TOKEN;
+    }
+    
+    if (!token) {
+      console.error("Mapbox token not found in environment variables");
+      return;
+    }
+
+    mapboxgl.accessToken = token;
+
+    // Calculate center and bounds
+    const lats = agencies.map((a) => parseFloat(a.latitude.toString()));
+    const lngs = agencies.map((a) => parseFloat(a.longitude.toString()));
+    const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+    const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+
+    // Create map
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: getMapboxStyle(styleMode),
-      center: [0, 0],
-      zoom: 2,
+      style: "mapbox://styles/mapbox/satellite-v9",
+      center: [centerLng, centerLat],
+      zoom: 12,
     });
 
-    map.current.on("error", handleMapboxError);
-
-    return () => {
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
-      map.current?.remove();
-      map.current = null;
-    };
-  }, [styleMode]);
-
-  useEffect(() => {
-    if (!map.current) return;
-    map.current.setStyle(getMapboxStyle(styleMode));
-  }, [styleMode]);
-
-  useEffect(() => {
-    if (!map.current) return;
-
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    if (agencies.length === 0) return;
-
+    // Add markers for all agencies
     agencies.forEach((agency) => {
-      const lat = Number(agency.latitude);
-      const lng = Number(agency.longitude);
+      const lat = parseFloat(agency.latitude.toString());
+      const lng = parseFloat(agency.longitude.toString());
 
       const marker = new mapboxgl.Marker({ color: "#ef4444" })
         .setLngLat([lng, lat])
@@ -72,43 +58,25 @@ export function MapboxMapWithMarkers({
         )
         .addTo(map.current!);
 
+      // Add click handler to marker
       marker.getElement().addEventListener("click", () => {
-        onAgencyClick?.(agency.id);
+        if (onAgencyClick) {
+          onAgencyClick(agency.id);
+        }
       });
-
-      markersRef.current.push(marker);
     });
 
-    const bounds = new mapboxgl.LngLatBounds();
-    agencies.forEach((agency) => {
-      bounds.extend([Number(agency.longitude), Number(agency.latitude)]);
-    });
-
-    map.current.fitBounds(bounds, { padding: 50, maxZoom: 14, duration: 500 });
+    // Cleanup
+    return () => {
+      map.current?.remove();
+    };
   }, [agencies, onAgencyClick]);
 
   return (
-    <div className="w-full">
-      <div
-        ref={mapContainer}
-        className="h-96 w-full overflow-hidden rounded-lg bg-slate-200"
-        style={{ minHeight: "400px" }}
-      />
-      <div className="mt-4 flex gap-2">
-        <Button
-          variant={styleMode === "satellite" ? "default" : "outline"}
-          size="sm"
-          onClick={() =>
-            setStyleMode((current) =>
-              current === "default" ? "satellite" : "default"
-            )
-          }
-          className="flex items-center gap-2"
-        >
-          <Layers2 className="h-4 w-4" />
-          {styleMode === "satellite" ? "Standard Map" : "Satellite View"}
-        </Button>
-      </div>
-    </div>
+    <div
+      ref={mapContainer}
+      className="w-full h-96 rounded-lg overflow-hidden bg-slate-200"
+      style={{ minHeight: "400px" }}
+    />
   );
 }

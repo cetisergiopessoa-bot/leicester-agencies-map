@@ -168,23 +168,6 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
-  // Optimize deps to prevent "Outdated Optimize Dep" errors
-  optimizeDeps: {
-    include: [
-      "react",
-      "react-dom",
-      "@tanstack/react-query",
-      "@trpc/client",
-      "@trpc/react-query",
-      "@trpc/server",
-      "superjson",
-      "zod",
-      "mapbox-gl",
-    ],
-    esbuildOptions: {
-      jsx: "automatic",
-    },
-  },
   server: {
     host: true,
     allowedHosts: [
