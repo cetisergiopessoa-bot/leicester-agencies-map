@@ -108,3 +108,10 @@ temp/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
+
+# Local tooling artifacts
+.amazonq/
+.playwright-cli/
+
+# npm lockfile (using pnpm for this repo)
+package-lock.json
